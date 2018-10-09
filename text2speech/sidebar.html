@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <base target="_top">
+</head>
+
+<body>
+  <button onclick="sayTextFromStart()">Speak Selected Text</button>
+  <div id="displayText"></div>
+</body>
+<script>
+  if ('speechSynthesis' in window) {
+    var index = 0;
+    var indexEnd = 0;
+    var sentences;
+    var displayText = document.getElementById("displayText");
+    var speaker = new SpeechSynthesisUtterance();
+    speaker.lang = 'en-US';
+    speaker.onend = function () {
+      if (index < indexEnd) sayText();
+      else {
+        displayText.innerHTML = "";
+        speechSynthesis.cancel();
+      }
+    }
+
+    function sayText() {
+      var sentence = sentences[index++];
+      displayText.innerHTML = sentence;
+      speaker.text = sentence;
+      speechSynthesis.speak(speaker);
+    }
+
+    function sayTextFromStart() {
+      google.script.run
+        .withSuccessHandler(function (text) {
+          console.log('Success', text);
+          index = 0;
+          indexEnd = text.length;
+          sentences = text;
+          sayText();
+        })
+        .withFailureHandler(function (msg) {
+          speaker.text = "Select some text to be spoken";
+          speechSynthesis.speak(speaker);
+        })
+        .withUserObject(this)
+        .getSelectedText();
+    }
+
+    sayTextFromStart();
+  }
+  else console.log("Speech Synthesis not supported");
+</script>
+
+</html>
